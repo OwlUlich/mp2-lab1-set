@@ -1,4 +1,4 @@
-// ННГУ, ВМК, Курс "Методы программирования-2", С++, ООП
+// HHV, BMK, Курс "Методы программирования-2", C++, 001
 //
 // tset.cpp - Copyright (c) Гергель В.П. 04.10.2001
 //   Переработано для Microsoft Visual Studio 2008 Сысоевым А.В. (19.04.2015)
@@ -6,99 +6,134 @@
 // Множество - реализация через битовые поля
 
 #include "tset.h"
+#include <stdexcept>
 
-// Fake variables used as placeholders in tests
-static const int FAKE_INT = -1;
-static TBitField FAKE_BITFIELD(1);
-static TSet FAKE_SET(1);
+// ---------------------------------------------------------------
+// Конструкторы и преобразования
+// ---------------------------------------------------------------
 
-TSet::TSet(int mp) : BitField(-1)
+TSet::TSet(int mp) : BitField(mp)
 {
+    MaxPower = mp;
 }
 
 // конструктор копирования
-TSet::TSet(const TSet &s) : BitField(-1)
+TSet::TSet(const TSet& s) : BitField(s.BitField)
 {
+    MaxPower = s.MaxPower;
 }
 
 // конструктор преобразования типа
-TSet::TSet(const TBitField &bf) : BitField(-1)
+TSet::TSet(const TBitField& bf) : BitField(bf)
 {
+    MaxPower = bf.GetLength();
 }
 
 TSet::operator TBitField()
 {
-    return FAKE_BITFIELD;
+    return BitField;
 }
 
-int TSet::GetMaxPower(void) const // получить макс. к-во эл-тов
+// ---------------------------------------------------------------
+// Доступ к элементам множества
+// ---------------------------------------------------------------
+
+int TSet::GetMaxPower(void) const
 {
-    return FAKE_INT;
+    return MaxPower;
 }
 
-int TSet::IsMember(const int Elem) const // элемент множества?
+int TSet::IsMember(const int Elem) const
 {
-    return FAKE_INT;
+    if (Elem < 0 || Elem >= MaxPower)
+        return 0;
+    return BitField.GetBit(Elem);
 }
 
-void TSet::InsElem(const int Elem) // включение элемента множества
+void TSet::InsElem(const int Elem)
 {
+    if (Elem < 0 || Elem >= MaxPower)
+        throw std::out_of_range("TSet::InsElem: index out of range");
+    BitField.SetBit(Elem);
 }
 
-void TSet::DelElem(const int Elem) // исключение элемента множества
+void TSet::DelElem(const int Elem)
 {
+    if (Elem < 0 || Elem >= MaxPower)
+        throw std::out_of_range("TSet::DelElem: index out of range");
+    BitField.ClrBit(Elem);
 }
 
-// теоретико-множественные операции
+// ---------------------------------------------------------------
+// Теоретико-множественные операции
+// ---------------------------------------------------------------
 
-TSet& TSet::operator=(const TSet &s) // присваивание
+TSet& TSet::operator=(const TSet& s)
 {
-    return FAKE_SET;
+    if (this == &s)
+        return *this;
+    MaxPower = s.MaxPower;
+    BitField = s.BitField;
+    return *this;
 }
 
-int TSet::operator==(const TSet &s) const // сравнение
+int TSet::operator==(const TSet& s) const
 {
-    return FAKE_INT;
+    return BitField == s.BitField;
 }
 
-int TSet::operator!=(const TSet &s) const // сравнение
+int TSet::operator!=(const TSet& s) const
 {
-    return FAKE_INT;
+    return BitField != s.BitField;
 }
 
-TSet TSet::operator+(const TSet &s) // объединение
+// объединение с элементом
+TSet TSet::operator+(const int Elem)
 {
-    return FAKE_SET;
+    TSet res(*this);
+    res.InsElem(Elem);
+    return res;
 }
 
-TSet TSet::operator+(const int Elem) // объединение с элементом
+// разность с элементом
+TSet TSet::operator-(const int Elem)
 {
-    return FAKE_SET;
+    TSet res(*this);
+    res.DelElem(Elem);
+    return res;
 }
 
-TSet TSet::operator-(const int Elem) // разность с элементом
+// объединение двух множеств
+TSet TSet::operator+(const TSet& s)
 {
-    return FAKE_SET;
+    return TSet(BitField | s.BitField);
 }
 
-TSet TSet::operator*(const TSet &s) // пересечение
+// пересечение двух множеств
+TSet TSet::operator*(const TSet& s)
 {
-    return FAKE_SET;
+    return TSet(BitField & s.BitField);
 }
 
-TSet TSet::operator~(void) // дополнение
+
+// дополнение множества
+TSet TSet::operator~(void)
 {
-    return FAKE_SET;
+    return TSet(~BitField);
 }
 
-// перегрузка ввода/вывода
+// ---------------------------------------------------------------
+// Ввод / вывод
+// ---------------------------------------------------------------
 
-istream &operator>>(istream &istr, TSet &s) // ввод
+istream& operator>>(istream& istr, TSet& s)
 {
+    istr >> s.BitField;
     return istr;
 }
 
-ostream& operator<<(ostream &ostr, const TSet &s) // вывод
+ostream& operator<<(ostream& ostr, const TSet& s)
 {
+    ostr << s.BitField;
     return ostr;
 }
